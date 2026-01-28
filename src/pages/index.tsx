@@ -73,46 +73,57 @@ const Index = () => {
     setIsLoading(true);
     setStatus('Analyzing...');
 
-    // Simulate AI prediction
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      // Call the backend API with market data
+      const response = await fetch('http://localhost:5000/api/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          spx: marketData.spx,
+          uso: marketData.uso,
+          slv: marketData.slv,
+          eurUsd: marketData.eurUsd,
+          usdLkr: marketData.usdLkr,
+        }),
+      });
 
-    // Determine mock base price from inputs (just for simulation feel)
-    // In reality, this would call the backend API
-    const baseGoldPrice = 1600 + (marketData.spx * 0.1) + (marketData.slv * 15) - (marketData.uso * 4);
-    const randomVar = (Math.random() - 0.5) * 50;
+      if (!response.ok) {
+        throw new Error(`API error: ${response.statusText}`);
+      }
 
-    const predictedUsd = Math.round(Math.abs(baseGoldPrice + randomVar)); // Ensure positive
-    const lkrPricePerOz = predictedUsd * marketData.usdLkr;
-    const lkrPricePerGram = lkrPricePerOz / TROY_OUNCE_TO_GRAMS;
+      const data = await response.json();
 
-    // Pawan is typically 22k gold (standard jewellery gold)
-    // Formula: (Price per Gram 24k) * 8 * (22/24)
-    const KARAT_22_FACTOR = 0.9167; // 22/24
-    const lkrPricePerPawan = lkrPricePerGram * GRAMS_PER_PAWAN * KARAT_22_FACTOR;
+      if (!data.success) {
+        throw new Error(data.error || 'Prediction failed');
+      }
 
-    const analyses = [
-      "Market volatility in S&P 500 suggests a flight to safety, potentially boosting gold prices.",
-      "Strength in the EUR/USD pair indicates dollar weakness, creating a favorable environment for gold.",
-      "Silver's current momentum is providing strong support for the precious metals complex.",
-      "Oil market fluctuations are currently having a neutral impact on inflation expectations.",
-    ];
+      const newPrediction: Prediction = {
+        predictedUsd: data.predictedUsd,
+        lkrPawan: data.lkrPawan,
+        lkrGram: data.lkrGram,
+        analysis: data.analysis,
+        timestamp: new Date(),
+      };
 
-    const newPrediction: Prediction = {
-      predictedUsd,
-      lkrPawan: lkrPricePerPawan,
-      lkrGram: lkrPricePerGram, // Keeping Gram as 24k for reference, or should it match? Let's keep 24k for "Market Price"
-      analysis: analyses[Math.floor(Math.random() * analyses.length)],
-      timestamp: new Date(),
-    };
+      setPrediction(newPrediction);
+      setStatus('Ready');
+      setIsLoading(false);
 
-    setPrediction(newPrediction);
-    setStatus('Ready');
-    setIsLoading(false);
-
-    toast({
-      title: "Prediction Generated",
-      description: `24h forecast: Rs. ${lkrPricePerPawan.toLocaleString(undefined, { maximumFractionDigits: 0 })} / 22k Pawan`,
-    });
+      toast({
+        title: "Prediction Generated",
+        description: `24h forecast: Rs. ${data.lkrPawan.toLocaleString(undefined, { maximumFractionDigits: 0 })} / 22k Pawan`,
+      });
+    } catch (error) {
+      setStatus('Ready');
+      setIsLoading(false);
+      toast({
+        title: "Prediction Error",
+        description: error instanceof Error ? error.message : 'Failed to generate prediction',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleSave = () => {
