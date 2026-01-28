@@ -2,8 +2,8 @@ import { History, Clock } from 'lucide-react';
 
 interface HistoryItem {
   id: string;
-  lkrPawan: number;
-  predictedUsd: number;
+  lkrPerPawan22K: number;
+  predictedUsdPerOz: number;
   date: Date;
 }
 
@@ -31,13 +31,13 @@ export const HistoryList = ({ items, status }: HistoryListProps) => {
       <div className="divide-y divide-border/50 max-h-48 overflow-y-auto scrollbar-thin">
         {items.length > 0 ? (
           items.map((item) => (
-            <div 
-              key={item.id} 
+            <div
+              key={item.id}
               className="p-4 hover:bg-secondary/30 transition-colors flex justify-between items-center group"
             >
               <div>
                 <p className="font-bold text-primary font-mono">
-                  Rs. {item.lkrPawan.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  Rs. {item.lkrPerPawan22K.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                 </p>
                 <div className="flex items-center gap-1.5 mt-1">
                   <Clock className="w-3 h-3 text-muted-foreground/60" />
@@ -47,7 +47,7 @@ export const HistoryList = ({ items, status }: HistoryListProps) => {
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-xs text-muted-foreground font-mono">${item.predictedUsd}</p>
+                <p className="text-xs text-muted-foreground font-mono">${item.predictedUsdPerOz}</p>
                 <p className="text-[10px] text-muted-foreground/60 uppercase">USD Target</p>
               </div>
             </div>

@@ -1,9 +1,9 @@
 import { Coins, Save, Sparkles } from 'lucide-react';
 
 interface PredictionData {
-  predictedUsd: number;
-  lkrPawan: number;
-  lkrGram: number;
+  predictedUsdPerOz: number;
+  lkrPerPawan22K: number;
+  lkrPerGram22K: number;
   analysis: string;
   timestamp: Date;
 }
@@ -50,11 +50,11 @@ export const PredictionCard = ({ prediction, onSave }: PredictionCardProps) => {
         <div>
           <div className="flex items-baseline gap-2">
             <span className="stat-value text-foreground">
-              Rs. {prediction.lkrPawan.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              Rs. {prediction.lkrPerPawan22K.toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </span>
           </div>
           <p className="text-muted-foreground mt-1 text-sm">
-            Per Pawan (8g) • Rs. {prediction.lkrGram.toLocaleString(undefined, { maximumFractionDigits: 2 })} / gram
+            Per Pawan (8g) • Rs. {prediction.lkrPerGram22K.toLocaleString(undefined, { maximumFractionDigits: 2 })} / gram
           </p>
         </div>
 
@@ -65,7 +65,7 @@ export const PredictionCard = ({ prediction, onSave }: PredictionCardProps) => {
           </div>
           <div>
             <p className="stat-label">USD Price Target</p>
-            <p className="font-bold font-mono text-foreground">${prediction.predictedUsd.toLocaleString()}</p>
+            <p className="font-bold font-mono text-foreground">${prediction.predictedUsdPerOz.toLocaleString()}</p>
           </div>
         </div>
 

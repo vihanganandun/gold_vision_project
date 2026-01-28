@@ -3,83 +3,111 @@ from flask_cors import CORS
 import joblib
 import numpy as np
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
 
-# Load the trained model
-model_path = os.path.join(os.path.dirname(__file__), '../saved_models/gold_price_model_2025.pkl')
-features_path = os.path.join(os.path.dirname(__file__), '../saved_models/feature_names_2025.pkl')
+# ---------------- LOAD MODEL ----------------
+BASE_DIR = os.path.dirname(__file__)
+
+model_path = os.path.join(BASE_DIR, "../saved_models/gold_price_model_new.pkl")
+features_path = os.path.join(BASE_DIR, "../saved_models/feature_names_gold_price_model_new.pkl")
 
 model = joblib.load(model_path)
 feature_names = joblib.load(features_path)
 
-print(f"Model loaded successfully: {type(model)}")
-print(f"Expected features: {feature_names}")
+print("Model loaded:", type(model))
+print("Expected feature order:", feature_names)
 
+# ---------------- CONSTANTS ----------------
 TROY_OUNCE_TO_GRAMS = 31.1035
-GRAMS_PER_PAWAN = 8.0
-KARAT_22_FACTOR = 0.9167  # 22/24 for jewellery gold
+KARAT_22_FACTOR = 22 / 24  # exact
+DEFAULT_PAWAN_WEIGHT = 8.0  # Sri Lanka standard
 
-@app.route('/api/predict', methods=['POST'])
+# ---------------- HELPERS ----------------
+def validate_inputs(data, required_fields):
+    missing = [f for f in required_fields if f not in data or data[f] is None]
+    if missing:
+        raise ValueError(f"Missing fields: {', '.join(missing)}")
+
+# Map frontend field names to model feature names
+FIELD_MAPPING = {
+    "spx": "SPX",
+    "uso": "USO",
+    "slv": "SLV",
+    "eurUsd": "EUR/USD"
+}
+
+def build_feature_vector(data):
+    """
+    Build feature array in the EXACT order used during training
+    Maps frontend camelCase field names to model feature names
+    """
+    mapped_data = {FIELD_MAPPING.get(k, k): v for k, v in data.items()}
+    return np.array([[float(mapped_data[name]) for name in feature_names]])
+
+# ---------------- ROUTES ----------------
+@app.route("/api/predict", methods=["POST"])
 def predict():
     try:
-        data = request.json
-        
-        # Extract market indicators
-        spx = float(data.get('spx', 0))
-        uso = float(data.get('uso', 0))
-        slv = float(data.get('slv', 0))
-        eur_usd = float(data.get('eurUsd', 0))
-        usd_lkr = float(data.get('usdLkr', 0))
-        
-        # Validate inputs
-        if not all([spx, uso, slv, eur_usd, usd_lkr]):
-            return jsonify({'error': 'All market indicators are required'}), 400
-        
-        # Prepare features for model (in same order as training)
-        features = np.array([[spx, uso, slv, eur_usd]])
-        
-        # Make prediction
-        predicted_usd = float(model.predict(features)[0])
-        
-        # Calculate LKR prices
-        lkr_price_per_oz = predicted_usd * usd_lkr
-        lkr_price_per_gram = lkr_price_per_oz / TROY_OUNCE_TO_GRAMS
-        lkr_price_per_pawan = lkr_price_per_gram * GRAMS_PER_PAWAN * KARAT_22_FACTOR
-        
-        # Market analysis
-        analyses = [
-            "Market volatility in S&P 500 suggests a flight to safety, potentially boosting gold prices.",
-            "Strength in the EUR/USD pair indicates dollar weakness, creating a favorable environment for gold.",
-            "Silver's current momentum is providing strong support for the precious metals complex.",
-            "Oil market fluctuations are currently having a neutral impact on inflation expectations.",
-            "Safe-haven demand is driving gold prices higher as investors seek protection.",
-        ]
-        
-        # Select analysis based on market indicators
-        analysis_idx = (int(spx + uso + slv) % len(analyses))
-        analysis = analyses[analysis_idx]
-        
-        return jsonify({
-            'success': True,
-            'predictedUsd': round(predicted_usd, 2),
-            'lkrPawan': round(lkr_price_per_pawan, 2),
-            'lkrGram': round(lkr_price_per_gram, 2),
-            'analysis': analysis,
-            'timestamp': str(np.datetime64('now'))
-        }), 200
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        data = request.get_json(force=True)
 
-@app.route('/api/health', methods=['GET'])
+        # Required inputs (using frontend field names)
+        validate_inputs(data, ["usdLkr", "spx", "uso", "slv", "eurUsd"])
+
+        usd_lkr = float(data["usdLkr"])
+        pawan_weight = float(data.get("pawanWeight", DEFAULT_PAWAN_WEIGHT))
+
+        # Build model input safely
+        features = build_feature_vector(data)
+
+        # Predict USD price (per troy ounce)
+        predicted_usd_per_oz = float(model.predict(features)[0])
+
+        # ---- Currency & Unit Conversions ----
+        lkr_per_oz_24k = predicted_usd_per_oz * usd_lkr
+        lkr_per_gram_24k = lkr_per_oz_24k / TROY_OUNCE_TO_GRAMS
+
+        lkr_per_gram_22k = lkr_per_gram_24k * KARAT_22_FACTOR
+        lkr_per_pawan_22k = lkr_per_gram_22k * pawan_weight
+
+        # ---- Market Insight (non-random) ----
+        eur_usd = float(data.get("eurUsd", 0))
+        analysis = (
+            "Gold is gaining support from a weaker dollar."
+            if eur_usd > 1
+            else "Dollar strength is applying pressure on gold prices."
+        )
+
+        return jsonify({
+            "success": True,
+            "predictedUsdPerOz": round(predicted_usd_per_oz, 2),
+            "lkrPerGram22K": round(lkr_per_gram_22k, 2),
+            "lkrPerPawan22K": round(lkr_per_pawan_22k, 2),
+            "assumptions": {
+                "unit": "USD per troy ounce",
+                "pawanWeightGrams": pawan_weight,
+                "karat": "22K"
+            },
+            "analysis": analysis,
+            "timestamp": datetime.utcnow().isoformat() + "Z"
+        }), 200
+
+    except ValueError as ve:
+        return jsonify({"error": str(ve)}), 400
+    except Exception as e:
+        return jsonify({"error": "Prediction failed", "details": str(e)}), 500
+
+
+@app.route("/api/health", methods=["GET"])
 def health():
     return jsonify({
-        'status': 'ok',
-        'model_loaded': True,
-        'features': feature_names
+        "status": "ok",
+        "modelLoaded": True,
+        "expectedFeatures": feature_names
     }), 200
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=5000)

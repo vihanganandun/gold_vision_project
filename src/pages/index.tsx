@@ -18,9 +18,9 @@ interface MarketData {
 }
 
 interface Prediction {
-  predictedUsd: number;
-  lkrPawan: number;
-  lkrGram: number;
+  predictedUsdPerOz: number;
+  lkrPerPawan22K: number;
+  lkrPerGram22K: number;
   analysis: string;
   timestamp: Date;
 }
@@ -100,9 +100,9 @@ const Index = () => {
       }
 
       const newPrediction: Prediction = {
-        predictedUsd: data.predictedUsd,
-        lkrPawan: data.lkrPawan,
-        lkrGram: data.lkrGram,
+        predictedUsdPerOz: data.predictedUsdPerOz,
+        lkrPerPawan22K: data.lkrPerPawan22K,
+        lkrPerGram22K: data.lkrPerGram22K,
         analysis: data.analysis,
         timestamp: new Date(),
       };
@@ -113,7 +113,7 @@ const Index = () => {
 
       toast({
         title: "Prediction Generated",
-        description: `24h forecast: Rs. ${data.lkrPawan.toLocaleString(undefined, { maximumFractionDigits: 0 })} / 22k Pawan`,
+        description: `24h forecast: Rs. ${data.lkrPerPawan22K.toLocaleString(undefined, { maximumFractionDigits: 0 })} / 22k Pawan`,
       });
     } catch (error) {
       setStatus('Ready');
@@ -144,7 +144,7 @@ const Index = () => {
 
   const chartData = [...savedPredictions].reverse().map(p => ({
     name: p.date.toLocaleDateString(),
-    price: p.lkrPawan,
+    price: p.lkrPerPawan22K,
   }));
 
   return (
