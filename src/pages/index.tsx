@@ -78,13 +78,17 @@ const Index = () => {
 
     // Determine mock base price from inputs (just for simulation feel)
     // In reality, this would call the backend API
-    const baseGoldPrice = 2000 + (marketData.spx * 0.1) + (marketData.slv * 20) - (marketData.uso * 5);
+    const baseGoldPrice = 1600 + (marketData.spx * 0.1) + (marketData.slv * 15) - (marketData.uso * 4);
     const randomVar = (Math.random() - 0.5) * 50;
 
     const predictedUsd = Math.round(Math.abs(baseGoldPrice + randomVar)); // Ensure positive
     const lkrPricePerOz = predictedUsd * marketData.usdLkr;
     const lkrPricePerGram = lkrPricePerOz / TROY_OUNCE_TO_GRAMS;
-    const lkrPricePerPawan = lkrPricePerGram * GRAMS_PER_PAWAN;
+
+    // Pawan is typically 22k gold (standard jewellery gold)
+    // Formula: (Price per Gram 24k) * 8 * (22/24)
+    const KARAT_22_FACTOR = 0.9167; // 22/24
+    const lkrPricePerPawan = lkrPricePerGram * GRAMS_PER_PAWAN * KARAT_22_FACTOR;
 
     const analyses = [
       "Market volatility in S&P 500 suggests a flight to safety, potentially boosting gold prices.",
@@ -96,7 +100,7 @@ const Index = () => {
     const newPrediction: Prediction = {
       predictedUsd,
       lkrPawan: lkrPricePerPawan,
-      lkrGram: lkrPricePerGram,
+      lkrGram: lkrPricePerGram, // Keeping Gram as 24k for reference, or should it match? Let's keep 24k for "Market Price"
       analysis: analyses[Math.floor(Math.random() * analyses.length)],
       timestamp: new Date(),
     };
@@ -107,7 +111,7 @@ const Index = () => {
 
     toast({
       title: "Prediction Generated",
-      description: `24h forecast: Rs. ${lkrPricePerPawan.toLocaleString(undefined, { maximumFractionDigits: 0 })} / Pawan`,
+      description: `24h forecast: Rs. ${lkrPricePerPawan.toLocaleString(undefined, { maximumFractionDigits: 0 })} / 22k Pawan`,
     });
   };
 
@@ -136,17 +140,21 @@ const Index = () => {
     <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
-        <header className="glass-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-gold-gradient flex items-center justify-center shadow-gold">
-              <TrendingUp className="w-6 h-6 text-primary-foreground" />
+        <header className="glass-card p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 animate-fade-in relative overflow-hidden group">
+          {/* Decorative shine */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+
+          <div className="flex items-center gap-5 relative z-10">
+            <div className="w-14 h-14 rounded-2xl bg-gold-gradient flex items-center justify-center shadow-gold transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
+              <TrendingUp className="w-7 h-7 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-extrabold text-foreground tracking-tight">
-                G0LD VISION <span className="text-primary">-See the future of GOLD price-</span>
+              <h1 className="text-2xl md:text-3xl font-extrabold text-foreground tracking-tight flex items-baseline gap-2">
+                GOLD VISION
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
               </h1>
-              <p className="text-sm text-muted-foreground">
-                Sri Lankan Market Price Predictor
+              <p className="text-sm font-medium text-muted-foreground/80 tracking-wide">
+                PREMIUM MARKET INTELLIGENCE
               </p>
             </div>
           </div>
@@ -154,21 +162,21 @@ const Index = () => {
           <button
             onClick={handleRefreshRates}
             disabled={isFetching}
-            className="btn-ghost flex items-center justify-center gap-2"
+            className="btn-ghost flex items-center justify-center gap-2 relative z-10"
           >
             <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-            <span className="font-semibold">Sync Rates</span>
+            <span>Sync Market Data</span>
           </button>
         </header>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Inputs */}
           <div className="space-y-6 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <div className="glass-card p-6">
-              <h2 className="stat-label mb-5 flex items-center gap-2">
-                <Zap className="w-4 h-4 text-primary" />
-                Model Inputs
+            <div className="glass-card p-6 md:p-8">
+              <h2 className="stat-label mb-6 flex items-center gap-3 text-primary">
+                <Zap className="w-4 h-4" />
+                Live Market Inputs
               </h2>
               <div className="space-y-5">
                 <MarketInput
