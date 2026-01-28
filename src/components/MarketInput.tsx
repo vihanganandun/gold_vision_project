@@ -1,10 +1,10 @@
-import { DollarSign, RefreshCw, Droplets, TrendingUp } from 'lucide-react';
+import { DollarSign, RefreshCw, Droplets, TrendingUp, LineChart, Coins } from 'lucide-react';
 
 interface MarketInputProps {
   label: string;
   value: number;
   onChange: (value: number) => void;
-  icon: 'dollar' | 'exchange' | 'oil' | 'inflation';
+  icon: 'dollar' | 'exchange' | 'oil' | 'inflation' | 'spx' | 'silver';
 }
 
 const iconMap = {
@@ -12,6 +12,8 @@ const iconMap = {
   exchange: RefreshCw,
   oil: Droplets,
   inflation: TrendingUp,
+  spx: LineChart,
+  silver: Coins,
 };
 
 const iconColorMap = {
@@ -19,6 +21,8 @@ const iconColorMap = {
   exchange: 'text-blue-400',
   oil: 'text-orange-400',
   inflation: 'text-emerald-400',
+  spx: 'text-purple-400',
+  silver: 'text-gray-400',
 };
 
 export const MarketInput = ({ label, value, onChange, icon }: MarketInputProps) => {

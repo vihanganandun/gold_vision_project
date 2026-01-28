@@ -10,10 +10,11 @@ const TROY_OUNCE_TO_GRAMS = 31.1035;
 const GRAMS_PER_PAWAN = 8.0;
 
 interface MarketData {
-  goldUsd: number;
+  spx: number;
+  uso: number;
+  slv: number;
+  eurUsd: number;
   usdLkr: number;
-  oilPrice: number;
-  inflation: number;
 }
 
 interface Prediction {
@@ -31,10 +32,11 @@ interface SavedPrediction extends Prediction {
 
 const Index = () => {
   const [marketData, setMarketData] = useState<MarketData>({
-    goldUsd: 4600,
+    spx: 4780.20,
+    uso: 75.50,
+    slv: 23.40,
+    eurUsd: 1.09,
     usdLkr: 309.03,
-    oilPrice: 72.80,
-    inflation: 4.2,
   });
 
   const [prediction, setPrediction] = useState<Prediction | null>(null);
@@ -46,18 +48,19 @@ const Index = () => {
   const handleRefreshRates = async () => {
     setIsFetching(true);
     setStatus('Syncing...');
-    
+
     // Simulate fetching real-time rates
     await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Update with slightly varied values to simulate real-time changes
+
+    // Update with slightly varied values
     setMarketData(prev => ({
-      goldUsd: prev.goldUsd + (Math.random() - 0.5) * 20,
+      spx: prev.spx + (Math.random() - 0.5) * 50,
+      uso: prev.uso + (Math.random() - 0.5) * 2,
+      slv: prev.slv + (Math.random() - 0.5) * 0.5,
+      eurUsd: prev.eurUsd + (Math.random() - 0.5) * 0.01,
       usdLkr: prev.usdLkr + (Math.random() - 0.5) * 2,
-      oilPrice: prev.oilPrice + (Math.random() - 0.5) * 3,
-      inflation: prev.inflation,
     }));
-    
+
     setStatus('Synced');
     setIsFetching(false);
     toast({
@@ -73,18 +76,21 @@ const Index = () => {
     // Simulate AI prediction
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Calculate prediction based on market data
-    const predictedChange = (Math.random() - 0.3) * 50; // Slight upward bias
-    const predictedUsd = Math.round(marketData.goldUsd + predictedChange);
+    // Determine mock base price from inputs (just for simulation feel)
+    // In reality, this would call the backend API
+    const baseGoldPrice = 2000 + (marketData.spx * 0.1) + (marketData.slv * 20) - (marketData.uso * 5);
+    const randomVar = (Math.random() - 0.5) * 50;
+
+    const predictedUsd = Math.round(Math.abs(baseGoldPrice + randomVar)); // Ensure positive
     const lkrPricePerOz = predictedUsd * marketData.usdLkr;
     const lkrPricePerGram = lkrPricePerOz / TROY_OUNCE_TO_GRAMS;
     const lkrPricePerPawan = lkrPricePerGram * GRAMS_PER_PAWAN;
 
     const analyses = [
-      "Gold prices are expected to remain stable with slight upward momentum due to ongoing geopolitical tensions and central bank buying activity.",
-      "Technical indicators suggest a consolidation phase. The USD/LKR rate stability supports current price levels in the local market.",
-      "Market sentiment remains bullish as inflation concerns persist. Safe-haven demand continues to support gold prices globally.",
-      "Oil price fluctuations may impact short-term movements. Overall trend remains positive for precious metals.",
+      "Market volatility in S&P 500 suggests a flight to safety, potentially boosting gold prices.",
+      "Strength in the EUR/USD pair indicates dollar weakness, creating a favorable environment for gold.",
+      "Silver's current momentum is providing strong support for the precious metals complex.",
+      "Oil market fluctuations are currently having a neutral impact on inflation expectations.",
     ];
 
     const newPrediction: Prediction = {
@@ -98,7 +104,7 @@ const Index = () => {
     setPrediction(newPrediction);
     setStatus('Ready');
     setIsLoading(false);
-    
+
     toast({
       title: "Prediction Generated",
       description: `24h forecast: Rs. ${lkrPricePerPawan.toLocaleString(undefined, { maximumFractionDigits: 0 })} / Pawan`,
@@ -144,7 +150,7 @@ const Index = () => {
               </p>
             </div>
           </div>
-          
+
           <button
             onClick={handleRefreshRates}
             disabled={isFetching}
@@ -162,33 +168,41 @@ const Index = () => {
             <div className="glass-card p-6">
               <h2 className="stat-label mb-5 flex items-center gap-2">
                 <Zap className="w-4 h-4 text-primary" />
-                Market Inputs
+                Model Inputs
               </h2>
               <div className="space-y-5">
                 <MarketInput
-                  label="Gold Price (USD/oz)"
-                  value={marketData.goldUsd}
-                  onChange={(v) => setMarketData(p => ({ ...p, goldUsd: v }))}
-                  icon="dollar"
+                  label="S&P 500 Index (SPX)"
+                  value={marketData.spx}
+                  onChange={(v) => setMarketData(p => ({ ...p, spx: v }))}
+                  icon="spx"
                 />
                 <MarketInput
-                  label="USD / LKR Rate"
-                  value={marketData.usdLkr}
-                  onChange={(v) => setMarketData(p => ({ ...p, usdLkr: v }))}
-                  icon="exchange"
-                />
-                <MarketInput
-                  label="Brent Oil (USD)"
-                  value={marketData.oilPrice}
-                  onChange={(v) => setMarketData(p => ({ ...p, oilPrice: v }))}
+                  label="United States Oil (USO)"
+                  value={marketData.uso}
+                  onChange={(v) => setMarketData(p => ({ ...p, uso: v }))}
                   icon="oil"
                 />
                 <MarketInput
-                  label="Inflation Rate (%)"
-                  value={marketData.inflation}
-                  onChange={(v) => setMarketData(p => ({ ...p, inflation: v }))}
-                  icon="inflation"
+                  label="Silver Price (SLV)"
+                  value={marketData.slv}
+                  onChange={(v) => setMarketData(p => ({ ...p, slv: v }))}
+                  icon="silver"
                 />
+                <MarketInput
+                  label="EUR / USD Rate"
+                  value={marketData.eurUsd}
+                  onChange={(v) => setMarketData(p => ({ ...p, eurUsd: v }))}
+                  icon="exchange"
+                />
+                <div className="pt-4 border-t border-border/50">
+                  <MarketInput
+                    label="USD / LKR (Conversion)"
+                    value={marketData.usdLkr}
+                    onChange={(v) => setMarketData(p => ({ ...p, usdLkr: v }))}
+                    icon="dollar"
+                  />
+                </div>
               </div>
             </div>
 
@@ -200,7 +214,7 @@ const Index = () => {
               {isLoading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Analyzing Market...</span>
+                  <span>Running Model...</span>
                 </>
               ) : (
                 <>
