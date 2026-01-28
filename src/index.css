@@ -1,0 +1,182 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+@layer base {
+  :root {
+    --background: 222 47% 7%;
+    --foreground: 210 40% 96%;
+
+    --card: 222 47% 10%;
+    --card-foreground: 210 40% 96%;
+
+    --popover: 222 47% 10%;
+    --popover-foreground: 210 40% 96%;
+
+    --primary: 43 96% 56%;
+    --primary-foreground: 222 47% 7%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 96%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 55%;
+
+    --accent: 43 96% 56%;
+    --accent-foreground: 222 47% 7%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 33% 20%;
+    --input: 217 33% 17%;
+    --ring: 43 96% 56%;
+
+    --radius: 1rem;
+
+    /* Custom Design Tokens */
+    --gold: 43 96% 56%;
+    --gold-glow: 43 100% 70%;
+    --gold-muted: 43 50% 30%;
+    
+    --slate-950: 222 47% 5%;
+    --slate-900: 222 47% 7%;
+    --slate-800: 222 47% 10%;
+    --slate-700: 217 33% 17%;
+    --slate-600: 215 25% 27%;
+    --slate-500: 215 20% 45%;
+    --slate-400: 215 16% 55%;
+    --slate-300: 213 27% 74%;
+
+    /* Gradients */
+    --gradient-gold: linear-gradient(135deg, hsl(43 96% 56%) 0%, hsl(38 100% 50%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(222 47% 12%) 0%, hsl(222 47% 8%) 100%);
+    --gradient-gold-subtle: linear-gradient(135deg, hsl(43 96% 56% / 0.1) 0%, hsl(43 96% 56% / 0.05) 100%);
+
+    /* Shadows */
+    --shadow-gold: 0 0 40px hsl(43 96% 56% / 0.15);
+    --shadow-card: 0 4px 24px -4px hsl(222 47% 3% / 0.5);
+    --shadow-elevated: 0 8px 32px -8px hsl(222 47% 3% / 0.7);
+
+    --sidebar-background: 222 47% 7%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 43 96% 56%;
+    --sidebar-primary-foreground: 222 47% 7%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 217 33% 20%;
+    --sidebar-ring: 43 96% 56%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-xl border border-border/50 rounded-2xl;
+    box-shadow: var(--shadow-card);
+  }
+
+  .glass-card-elevated {
+    @apply bg-card/90 backdrop-blur-xl border border-border/60 rounded-2xl;
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .gold-glow {
+    box-shadow: var(--shadow-gold);
+  }
+
+  .text-gold {
+    @apply text-primary;
+  }
+
+  .bg-gold-gradient {
+    background: var(--gradient-gold);
+  }
+
+  .bg-gold-subtle {
+    background: var(--gradient-gold-subtle);
+  }
+
+  .input-field {
+    @apply w-full bg-secondary border border-border rounded-xl px-4 py-3 text-sm font-semibold text-foreground 
+           placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 
+           transition-all duration-200;
+  }
+
+  .btn-primary {
+    @apply px-6 py-4 bg-gold-gradient text-primary-foreground font-bold rounded-2xl 
+           shadow-lg hover:shadow-xl transition-all duration-300 
+           hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed
+           disabled:hover:scale-100;
+  }
+
+  .btn-ghost {
+    @apply px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 
+           rounded-xl transition-all duration-200;
+  }
+
+  .stat-label {
+    @apply text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground;
+  }
+
+  .stat-value {
+    @apply text-4xl md:text-5xl font-extrabold tracking-tight;
+  }
+}
+
+@layer utilities {
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s linear infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+}
